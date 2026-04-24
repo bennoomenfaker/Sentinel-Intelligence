@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CollectionPlan {
+  id                    String        @id @default(uuid())
+  hypothesisId          String        @default("placeholder")
+  projectId             String
+  question              String
+  frequency             String        @default("ON_DEMAND")
+  collectionStartDate   DateTime?
+  collectionEndDate     DateTime?
+  isActive              Boolean       @default(true)
+  lastCollectedAt       DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  
+  sources               Source[]
+  keywords              Keyword[]
+  rawItems              RawItem[]
+  collectionJobs       CollectionJob[]
+  
+  @@index([projectId])
+  @@index([hypothesisId])
+  @@index([frequency, isActive])
+}
+
+model Source {
+  id               String         @id @default(uuid())
+  collectionPlanId String
+  type             String
+  label            String?
+  url              String
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  
+  collectionPlan   CollectionPlan @relation(fields: [collectionPlanId], references: [id], onDelete: Cascade)
+  rawItems         RawItem[]
+  
+  @@index([collectionPlanId, type])
+}
+
+model Keyword {
+  id               String         @id @default(uuid())
+  collectionPlanId String
+  word             String
+  type             String         @default("INCLUDE")
+  createdAt        DateTime       @default(now())
+  
+  collectionPlan   CollectionPlan @relation(fields: [collectionPlanId], references: [id], onDelete: Cascade)
+  
+  @@unique([collectionPlanId, word, type])
+}
+
+model RawItem {
+  id                String   @id @default(uuid())
+  projectId         String
+  collectionPlanId  String
+  sourceId          String?
+  
+  sourceType        String
+  sourceUrl         String
+  title             String?
+  description       String?
+  publishedAt       DateTime?
+  
+  contentRaw        String   @db.Text
+  contentHash       String   @unique
+  
+  matchedKeywords   String[]
+  wordStats         Json?
+  
+  fetchedAt         DateTime @default(now())
+  statusCode        Int?
+  errorMessage      String?
+  metadata          Json?
+  
+  createdAt         DateTime @default(now())
+  
+  collectionPlan    CollectionPlan @relation(fields: [collectionPlanId], references: [id])
+  source            Source?        @relation(fields: [sourceId], references: [id])
+  
+  @@index([projectId])
+  @@index([collectionPlanId])
+  @@index([contentHash])
+  @@index([fetchedAt])
+}
+
+model CollectionJob {
+  id                String   @id @default(uuid())
+  collectionPlanId  String
+  projectId         String
+  triggeredBy       String
+  status            String
+  itemsCollected    Int      @default(0)
+  itemsFiltered     Int      @default(0)
+  itemsStored       Int      @default(0)
+  errorMessage      String?
+  startedAt         DateTime @default(now())
+  completedAt       DateTime?
+  
+  collectionPlan    CollectionPlan @relation(fields: [collectionPlanId], references: [id], onDelete: Cascade)
+  
+  @@index([collectionPlanId, status])
+  @@index([projectId, startedAt])
+}
