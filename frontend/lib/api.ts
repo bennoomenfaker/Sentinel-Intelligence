@@ -132,4 +132,10 @@ export async function getCollectionJobs(planId: string, projectId: string) {
   return res.data;
 }
 
+// AI Analysis
+export async function analyzeWithAi(content: string) {
+  const res = await api.post('/collection-plans/ai/analyze', { content });
+  return res.data;
+}
+
 export default api;

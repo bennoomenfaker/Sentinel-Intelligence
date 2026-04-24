@@ -11,6 +11,7 @@ import StatsCards from './components/StatsCards';
 import WordCloud from './components/WordCloud';
 import ItemList from './components/ItemList';
 import JobHistory from './components/JobHistory';
+import AiAnalyzer from './components/AiAnalyzer';
 import * as api from '../lib/api';
 import type { CollectionPlan, CollectionResults, CollectionJob, RawItem } from '../types';
 
@@ -32,7 +33,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'details' | 'results' | 'jobs'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'results' | 'jobs' | 'ai'>('details');
 
   useEffect(() => { loadProjects(); }, []);
   useEffect(() => { if (projectId) loadPlans(); }, [projectId]);
@@ -156,7 +157,7 @@ export default function Dashboard() {
                   <RunButton loading={loading} onClick={handleRunCollection} disabled={!selectedPlan.sources?.length} />
                 </div>
                 <div className="flex gap-1 border-b border-slate-700 mt-4">
-                  {[{ id: 'details', label: 'Details' }, { id: 'results', label: 'Results', count: results?.total || 0 }, { id: 'jobs', label: 'Jobs', count: jobs.length }].map(tab => (
+                  {[{ id: 'details', label: 'Details' }, { id: 'results', label: 'Results', count: results?.total || 0 }, { id: 'jobs', label: 'Jobs', count: jobs.length }, { id: 'ai', label: 'AI Analysis' }].map(tab => (
                     <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                       className={`px-4 py-3 text-sm border-b-2 ${activeTab === tab.id ? 'text-blue-400 border-blue-400' : 'text-slate-400 border-transparent'}`}>
                       {tab.label} {tab.count !== undefined && <span className="ml-2 px-2 py-0.5 bg-slate-700 rounded-full text-xs">{tab.count}</span>}
@@ -181,6 +182,8 @@ export default function Dashboard() {
               )}
 
               {activeTab === 'jobs' && <JobHistory jobs={jobs} />}
+
+              {activeTab === 'ai' && <AiAnalyzer />}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-96 text-slate-500">
