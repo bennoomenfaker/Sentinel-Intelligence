@@ -95,6 +95,14 @@ export class CollectionEngineController {
     return this.collectionEngineService.deleteCollectionPlan(id, projectId);
   }
 
+  @Post('ai/analyze')
+  async analyzeWithAi(
+    @Body() body: { content: string },
+  ) {
+    const { content } = body;
+    return this.collectionEngineService.analyzeWithAi(content);
+  }
+
   @Delete(':id/sources/:sourceId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSource(

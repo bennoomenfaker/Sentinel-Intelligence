@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: collector-postgres
+    container_name: sentinel-postgres
     environment:
       POSTGRES_USER: collector
       POSTGRES_PASSWORD: collector123
@@ -14,26 +14,33 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U collector"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: collector-app
+  backend:
+    build: ./backend
+    container_name: sentinel-backend
+    ports:
+      - "3000:3000"
     environment:
       DATABASE_URL: postgresql://collector:collector123@postgres:5432/collector_engine
       PORT: 3000
-    ports:
-      - "3000:3000"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./src:/home/himawari/2027/src
-    command: sh -c "npx prisma migrate deploy && npm run start:prod"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: sentinel-frontend
+    ports:
+      - "3001:3001"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
   postgres_data:

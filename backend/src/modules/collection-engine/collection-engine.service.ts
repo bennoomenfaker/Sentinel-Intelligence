@@ -8,6 +8,7 @@ import { DeduplicationService } from './processing/deduplication.service';
 import { TextNormalizerService } from './processing/text-normalizer.service';
 import { WordAnalyzerService } from './processing/word-analyzer.service';
 import { WordStat } from './processing/word-analyzer.service';
+import { AiProcessingService } from './processing/ai-processing.service';
 import { RssConnectorService } from './connectors/rss.connector';
 import { WebConnectorService } from './connectors/web.connector';
 import { PdfConnectorService } from './connectors/pdf.connector';
@@ -43,6 +44,7 @@ export class CollectionEngineService implements OnModuleInit {
     private readonly dedupService: DeduplicationService,
     private readonly textNormalizer: TextNormalizerService,
     private readonly wordAnalyzer: WordAnalyzerService,
+    private readonly aiProcessing: AiProcessingService,
     private readonly rawItemService: RawItemService,
     private readonly schedulerService: SchedulerService,
   ) {}
@@ -115,6 +117,11 @@ export class CollectionEngineService implements OnModuleInit {
   async deleteSource(id: string, sourceId: string, projectId: string) {
     await this.getCollectionPlan(id, projectId);
     
+    const source = await this.prisma.source.findUnique({ where: { id: sourceId } });
+    if (!source) {
+      return { message: 'Source already deleted or not found' };
+    }
+    
     return this.prisma.source.delete({
       where: { id: sourceId },
     });
@@ -123,13 +130,24 @@ export class CollectionEngineService implements OnModuleInit {
   async deleteKeyword(id: string, keywordId: string, projectId: string) {
     await this.getCollectionPlan(id, projectId);
     
+    const keyword = await this.prisma.keyword.findUnique({ where: { id: keywordId } });
+    if (!keyword) {
+      return { message: 'Keyword already deleted or not found' };
+    }
+    
     return this.prisma.keyword.delete({
       where: { id: keywordId },
     });
   }
 
   async deleteCollectionPlan(id: string, projectId: string) {
-    await this.getCollectionPlan(id, projectId);
+    const plan = await this.prisma.collectionPlan.findFirst({
+      where: { id, projectId },
+    });
+    
+    if (!plan) {
+      return { message: 'Plan already deleted or not found' };
+    }
     
     return this.prisma.collectionPlan.delete({
       where: { id },
@@ -320,5 +338,9 @@ export class CollectionEngineService implements OnModuleInit {
       orderBy: { startedAt: 'desc' },
       take: 20,
     });
+  }
+
+  analyzeWithAi(content: string) {
+    return this.aiProcessing.processAll(content);
   }
 }

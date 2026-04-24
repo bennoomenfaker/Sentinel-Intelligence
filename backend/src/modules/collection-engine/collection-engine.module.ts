@@ -8,6 +8,7 @@ import { KeywordFilterService } from './processing/keyword-filter.service';
 import { DeduplicationService } from './processing/deduplication.service';
 import { TextNormalizerService } from './processing/text-normalizer.service';
 import { WordAnalyzerService } from './processing/word-analyzer.service';
+import { AiProcessingService } from './processing/ai-processing.service';
 import { RawItemService } from './storage/raw-item.service';
 import { SchedulerService } from './scheduling/scheduler.service';
 
@@ -22,6 +23,7 @@ import { SchedulerService } from './scheduling/scheduler.service';
     DeduplicationService,
     TextNormalizerService,
     WordAnalyzerService,
+    AiProcessingService,
     RawItemService,
     SchedulerService,
   ],

@@ -1,14 +1,15 @@
 FROM node:20-alpine
 
-WORKDIR /home/himawari/2027
+WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci
 
-COPY . .
+COPY prisma ./prisma/
 RUN npx prisma generate
 
-RUN npm run build
+COPY backend/src ./backend/src/
+COPY dist ./dist/
 
 EXPOSE 3000
 
