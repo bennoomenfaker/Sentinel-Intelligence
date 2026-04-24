@@ -496,11 +496,152 @@ DATABASE_URL="postgresql://collector:collector123@localhost:5432/collector_engin
 PORT=3000
 ```
 
+## AI Processing
+
+### How AI Works (NOT GPT)
+
+**This is rule-based AI, not GPT/LLM!** It uses:
+- Keyword matching for sentiment analysis
+- Pattern matching for entity extraction  
+- Category classification by keywords
+
+```typescript
+// backend/src/modules/collection-engine/processing/ai-processing.service.ts
+
+analyzeSentiment(content) {
+  // Positive words: good, great, success, grow, profit...
+  // Negative words: bad, fail, loss, crash, breach...
+  // Returns: score, label (positive/negative/neutral), confidence
+}
+
+extractEntities(content) {
+  // Regex patterns for: GPT-*, OpenAI, Google, Microsoft, etc.
+  // Returns: text, type (ORG/TECHNOLOGY), relevance score
+}
+
+classifyContent(content) {
+  // Category keywords: technology, business, AI, security...
+  // Returns: category, confidence
+}
+```
+
+### AI API Endpoint
+
+```bash
+# Analyze text directly
+curl -X POST "http://localhost:3000/api/collection-plans/ai/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "GPT-5 is amazing! Stock rises."}'
+
+# Response:
+{
+  "sentiment": { "score": 0.7, "label": "positive", "confidence": 0.7 },
+  "entities": [
+    { "text": "GPT-5", "type": "TECHNOLOGY", "relevance": 0.8 }
+  ],
+  "classification": { "category": "AI", "confidence": 0.67 }
+}
+```
+
+### Testing Examples
+
+**Example 1: Positive Tech News**
+```text
+Google announces GPT-5 with amazing capabilities. The AI startup raises $100M in funding. Stock price grows 20%. Technology sector shows strong growth.
+```
+→ Sentiment: positive, Category: technology/AI
+
+**Example 2: Negative Crypto News**
+```text
+Bitcoin crashes below $50,000. Crypto market loses billions in hours. Security breach at major exchange. Many investors lose money.
+```
+→ Sentiment: negative, Category: finance/security
+
+**Example 3: Le Monde French**
+```text
+OpenAI et Microsoft announce partenariat stratégique. L'intelligence artificielle transforme le secteur technologique français. Innovation remarquable.
+```
+→ Sentiment: positive, Category: technology/AI
+
+### Using AI in Frontend
+
+1. Go to Dashboard → Select a plan
+2. Click **AI Analysis** tab
+3. Paste any text in the textarea
+4. Click **Analyze** button
+5. View: Sentiment | Category | Entities
+
 ## Tech Stack
 
 - **Backend**: NestJS + Prisma + PostgreSQL
 - **Frontend**: Next.js + TypeScript + Tailwind CSS + Recharts
 - **Connectors**: rss-parser, axios, cheerio
+- **AI**: Rule-based (no GPT/LLM)
+
+## Complete Setup Example: AI News 2026
+
+### Step 1: Create Plan
+```bash
+curl -X POST "http://localhost:3000/api/collection-plans" \
+  -H "Content-Type: application/json" \
+  -d '{"projectId": "proj-001", "question": "Actualités IA 2026", "frequency": "ON_DEMAND"}'
+```
+
+### Step 2: Add RSS Sources
+```bash
+# TechCrunch
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/sources?projectId=proj-001" \
+  -d '{"type": "RSS", "url": "https://techcrunch.com/feed/", "label": "TechCrunch"}'
+
+# Wired
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/sources?projectId=proj-001" \
+  -d '{"type": "RSS", "url": "https://www.wired.com/feed/rss", "label": "Wired"}'
+
+# CNN
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/sources?projectId=proj-001" \
+  -d '{"type": "RSS", "url": "http://rss.cnn.com/rss/edition.rss", "label": "CNN"}'
+
+# Le Monde
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/sources?projectId=proj-001" \
+  -d '{"type": "RSS", "url": "https://www.lemonde.fr/rss/une.xml", "label": "Le Monde"}'
+```
+
+### Step 3: Add Keywords (INCLUDE)
+```bash
+# Must contain AI/artificial intelligence
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/keywords?projectId=proj-001" \
+  -d '{"word": "artificial intelligence", "type": "INCLUDE"}'
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/keywords?projectId=proj-001" \
+  -d '{"word": "AI", "type": "INCLUDE"}'
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/keywords?projectId=proj-001" \
+  -d '{"word": "GPT", "type": "INCLUDE"}'
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/keywords?projectId=proj-001" \
+  -d '{"word": "machine learning", "type": "INCLUDE"}'
+```
+
+### Step 4: Add Keywords (EXCLUDE)
+```bash
+# Filter out crypto/spam
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/keywords?projectId=proj-001" \
+  -d '{"word": "crypto", "type": "EXCLUDE"}'
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/keywords?projectId=proj-001" \
+  -d '{"word": "nft", "type": "EXCLUDE"}'
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/keywords?projectId=proj-001" \
+  -d '{"word": "bitcoin", "type": "EXCLUDE"}'
+```
+
+### Step 5: Run Collection
+```bash
+curl -X POST "http://localhost:3000/api/collection-plans/{planId}/run?projectId=proj-001"
+```
+
+### Step 6: View Results
+```bash
+# Word cloud + statistics
+curl "http://localhost:3000/api/collection-plans/{planId}/results?projectId=proj-001"
+
+# Or use frontend AI Analysis tab to analyze any text
+```
 
 
 
