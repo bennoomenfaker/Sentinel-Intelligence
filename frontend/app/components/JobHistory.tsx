@@ -1,56 +1,86 @@
 'use client';
 
-import { Activity, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { Activity, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react';
 import type { CollectionJob } from '../../types';
+import { Card, CardHeader, CardTitle } from './ui/Card';
+import { Badge, StatusBadge } from './ui/Badge';
 
 interface Props {
   jobs: CollectionJob[];
 }
 
-function getStatusInfo(status: string) {
-  switch (status) {
-    case 'COMPLETED': return { icon: <CheckCircle className="w-4 h-4 text-green-500" />, color: 'text-green-600', bg: 'bg-green-50' };
-    case 'FAILED': return { icon: <XCircle className="w-4 h-4 text-red-500" />, color: 'text-red-600', bg: 'bg-red-50' };
-    case 'RUNNING': return { icon: <Clock className="w-4 h-4 text-yellow-500" />, color: 'text-yellow-600', bg: 'bg-yellow-50' };
-    default: return { icon: <AlertCircle className="w-4 h-4 text-gray-500" />, color: 'text-gray-600', bg: 'bg-gray-50' };
-  }
-}
-
 export default function JobHistory({ jobs }: Props) {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'COMPLETED': return <CheckCircle className="w-5 h-5 text-success" />;
+      case 'FAILED': return <XCircle className="w-5 h-5 text-danger" />;
+      case 'RUNNING': return <Clock className="w-5 h-5 text-warning animate-pulse" />;
+      default: return <AlertCircle className="w-5 h-5 text-surface-400" />;
+    }
+  };
+
   return (
-    <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        <Activity className="w-5 h-5 text-yellow-400" /> Collection Jobs
-      </h3>
+    <Card>
+      <CardHeader>
+        <CardTitle icon={Activity} color="text-yellow-400">Historique des collectes</CardTitle>
+        <Badge>{jobs.length} jobs</Badge>
+      </CardHeader>
+
       <div className="space-y-3">
-        {jobs.map(job => {
-          const statusInfo = getStatusInfo(job.status);
-          return (
-            <div key={job.id} className={`p-4 ${statusInfo.bg} rounded-lg`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {statusInfo.icon}
-                  <div>
-                    <p className={`font-medium ${statusInfo.color}`}>{job.status}</p>
-                    <p className="text-xs text-slate-500">{job.triggeredBy} • {new Date(job.startedAt).toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-slate-700">{job.itemsStored} stored</p>
-                  <p className="text-xs text-slate-500">{job.itemsCollected} collected • {job.itemsFiltered} filtered</p>
+        {jobs.map((job, index) => (
+          <div 
+            key={job.id} 
+            className="p-4 bg-surface-900/50 rounded-xl hover:bg-surface-900 transition-all duration-200 animate-slide-up"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                {getStatusIcon(job.status)}
+                <div>
+                  <StatusBadge status={job.status} />
+                  <p className="text-xs text-surface-500 mt-1">
+                    {job.triggeredBy} • {new Date(job.startedAt).toLocaleString()}
+                  </p>
                 </div>
               </div>
-              {job.errorMessage && <p className="mt-2 text-sm text-red-500">{job.errorMessage}</p>}
+              {job.completedAt && (
+                <span className="text-xs text-surface-500">
+                  {new Date(job.completedAt).toLocaleTimeString()}
+                </span>
+              )}
             </div>
-          );
-        })}
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center p-2 bg-surface-800/50 rounded-lg">
+                <p className="text-lg font-bold text-white">{job.itemsCollected || 0}</p>
+                <p className="text-xs text-surface-500">Collectés</p>
+              </div>
+              <div className="text-center p-2 bg-surface-800/50 rounded-lg">
+                <p className="text-lg font-bold text-green-400">{job.itemsStored || 0}</p>
+                <p className="text-xs text-surface-500">Stockés</p>
+              </div>
+              <div className="text-center p-2 bg-surface-800/50 rounded-lg">
+                <p className="text-lg font-bold text-orange-400">{job.itemsFiltered || 0}</p>
+                <p className="text-xs text-surface-500">Filtrés</p>
+              </div>
+            </div>
+
+            {job.errorMessage && (
+              <div className="mt-3 p-3 bg-danger/10 border border-danger/20 rounded-lg">
+                <p className="text-sm text-danger">{job.errorMessage}</p>
+              </div>
+            )}
+          </div>
+        ))}
+
         {jobs.length === 0 && (
-          <div className="text-center py-12 text-slate-500">
-            <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No collection jobs yet</p>
+          <div className="text-center py-12 text-surface-500">
+            <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm font-medium">Aucun job</p>
+            <p className="text-xs mt-1">Lancez une collecte pour voir l'historique</p>
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

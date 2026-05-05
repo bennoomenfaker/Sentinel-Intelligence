@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+// @ts-ignore
+const pdfParse = require('pdf-parse');
 import { IConnector, CollectedData } from './connector.interface';
 
 @Injectable()
@@ -29,18 +31,32 @@ export class PdfConnectorService implements IConnector {
       }
 
       const filename = url.split('/').pop() || 'document.pdf';
+      
+      let extractedText = '';
+      let pageCount = 0;
+      
+      try {
+        const pdfData = await pdfParse(response.data);
+        extractedText = pdfData.text || '';
+        pageCount = pdfData.numpages || 0;
+      } catch (parseError) {
+        this.logger.warn(`⚠️ PDF text extraction failed: ${parseError.message}`);
+        extractedText = `[PDF Parse Error - ${response.data.length} bytes]`;
+      }
+
+      const content = extractedText || `[PDF No extractable text - ${response.data.length} bytes]`;
 
       items.push({
         sourceUrl: url,
         sourceType: 'PDF',
         title: filename,
-        description: 'PDF document downloaded',
-        content: `[PDF Binary Data - ${response.data.length} bytes]`,
-        contentRaw: `[PDF Binary Data - ${response.data.length} bytes]`,
+        description: content.substring(0, 200),
+        content,
+        contentRaw: content,
         publishedAt: undefined,
       });
 
-      this.logger.log(`✅ PDF: downloaded ${response.data.length} bytes`);
+      this.logger.log(`✅ PDF: ${response.data.length} bytes, ${pageCount} pages, ${extractedText.length} chars extracted`);
       return items;
     } catch (error) {
       this.logger.error(`❌ PDF fetch failed: ${error.message}`);

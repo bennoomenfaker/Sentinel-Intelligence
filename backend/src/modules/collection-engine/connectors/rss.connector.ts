@@ -11,7 +11,7 @@ export class RssConnectorService implements IConnector {
     try {
       const Parser = (await import('rss-parser')).default;
       const parser = new Parser({
-        timeout: 10000,
+        timeout: 30000,
         headers: {
           'User-Agent': 'Collector-Engine/1.0 (Strategic Monitoring Bot)',
         },

@@ -63,6 +63,7 @@ export class RawItemService {
       contentRaw: string;
       publishedAt?: Date;
       wordStats?: any;
+      aiAnalysis?: any;
     }[],
     collectionPlanId: string,
     projectId: string,
@@ -95,6 +96,7 @@ export class RawItemService {
           contentHash,
           matchedKeywords,
           wordStats: item.wordStats as any,
+          aiAnalysis: item.aiAnalysis as any,
           statusCode: 200,
         },
       });
@@ -137,7 +139,7 @@ export class RawItemService {
       take: 100,
     });
 
-    const typedItems = items.map(item => ({
+    const typedItems = items.map((item: any) => ({
       ...item,
       wordStats: item.wordStats as any,
     }));

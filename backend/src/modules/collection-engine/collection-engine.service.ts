@@ -223,10 +223,15 @@ export class CollectionEngineService implements OnModuleInit {
         }));
 
         // 📊 Word analysis
-        const withStats = cleaned.map((item) => ({
-          ...item,
-          wordStats: this.wordAnalyzer.getTopWords(item.contentRaw, 20),
-        }));
+        const withStats = cleaned.map((item) => {
+          const wordStats = this.wordAnalyzer.getTopWords(item.contentRaw, 20);
+          const aiAnalysis = this.aiProcessing.processAll(item.contentRaw);
+          return {
+            ...item,
+            wordStats,
+            aiAnalysis,
+          };
+        });
 
         // 💾 Bulk save
         const savedItems = await this.rawItemService.saveBulk(
@@ -316,7 +321,7 @@ export class CollectionEngineService implements OnModuleInit {
       take: 100,
     });
 
-    const typedItems = items.map(item => ({
+    const typedItems = items.map((item: any) => ({
       ...item,
       wordStats: item.wordStats as any,
     }));

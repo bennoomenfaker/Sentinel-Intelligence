@@ -17,14 +17,14 @@ export default function WordCloud({ wordCloud }: Props) {
   if (topWords.length === 0) return null;
 
   return (
-    <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+    <div className="bg-surface-800/50 rounded-xl p-6 border border-surface-700 overflow-hidden w-full max-w-full">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-blue-400" /> Word Cloud
+          <TrendingUp className="w-5 h-5 text-blue-400" /> Nuage de mots
         </h3>
-        <span className="text-xs text-slate-400">Size = Frequency</span>
+        <span className="text-xs text-surface-400">Taille = Fréquence</span>
       </div>
-      <div className="flex flex-wrap justify-center items-center gap-4 min-h-[180px]">
+      <div className="flex flex-wrap justify-center items-center gap-4 min-h-[180px] max-w-full overflow-hidden">
         {topWords.map((word, i) => {
           const ratio = word.value / maxValue;
           const fontSize = ratio > 0.7 ? 'text-5xl' : ratio > 0.4 ? 'text-3xl' : ratio > 0.2 ? 'text-xl' : 'text-base';

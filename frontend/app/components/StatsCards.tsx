@@ -2,6 +2,8 @@
 
 import { Database, Hash, Globe, Filter, TrendingUp, Tag, Link2, Search } from 'lucide-react';
 import type { CollectionResults, CollectionPlan } from '../../types';
+import { Card, CardHeader, CardTitle, StatCard } from './ui/Card';
+import { Badge } from './ui/Badge';
 
 interface Props {
   results: CollectionResults;
@@ -9,40 +11,52 @@ interface Props {
 }
 
 export default function StatsCards({ results, plan }: Props) {
+  const getSourceStats = () => {
+    const stats: Record<string, number> = {};
+    plan.sources?.forEach(s => {
+      stats[s.type] = (stats[s.type] || 0) + 1;
+    });
+    return Object.entries(stats).map(([key, val]) => `${val} ${key}`).join(' • ');
+  };
+
+  const stats = [
+    {
+      title: 'Items collectés',
+      value: results.total || 0,
+      icon: Database,
+      gradient: 'from-blue-500 to-cyan-500',
+      subtitle: `${results.items?.filter(i => i.sourceType === 'RSS').length || 0} RSS • ${results.items?.filter(i => i.sourceType === 'WEB').length || 0} Web • ${results.items?.filter(i => i.sourceType === 'PDF').length || 0} PDF`,
+    },
+    {
+      title: 'Mots uniques',
+      value: results.wordCloud?.length || 0,
+      icon: Hash,
+      gradient: 'from-purple-500 to-pink-500',
+      subtitle: results.wordCloud?.[0] ? `${results.wordCloud[0].text} (${results.wordCloud[0].value})` : 'Aucun',
+    },
+    {
+      title: 'Sources actives',
+      value: plan.sources?.length || 0,
+      icon: Globe,
+      gradient: 'from-green-500 to-emerald-500',
+      subtitle: getSourceStats() || 'Aucune source',
+    },
+    {
+      title: 'Mots-clés',
+      value: plan.keywords?.length || 0,
+      icon: Filter,
+      gradient: 'from-orange-500 to-amber-500',
+      subtitle: `${plan.keywords?.filter(k => k.type === 'INCLUDE').length || 0} include • ${plan.keywords?.filter(k => k.type === 'EXCLUDE').length || 0} exclude`,
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white">
-        <div className="flex items-center justify-between mb-2">
-          <Database className="w-6 h-6 text-blue-200" />
-          <TrendingUp className="w-5 h-5 text-blue-200" />
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-in">
+      {stats.map((stat, i) => (
+        <div key={i} className="animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
+          <StatCard {...stat} />
         </div>
-        <p className="text-3xl font-bold">{results.total || 0}</p>
-        <p className="text-sm text-blue-200">Items Collected</p>
-      </div>
-      <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 text-white">
-        <div className="flex items-center justify-between mb-2">
-          <Hash className="w-6 h-6 text-purple-200" />
-          <Tag className="w-5 h-5 text-purple-200" />
-        </div>
-        <p className="text-3xl font-bold">{results.wordCloud?.length || 0}</p>
-        <p className="text-sm text-purple-200">Unique Words</p>
-      </div>
-      <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white">
-        <div className="flex items-center justify-between mb-2">
-          <Globe className="w-6 h-6 text-green-200" />
-          <Link2 className="w-5 h-5 text-green-200" />
-        </div>
-        <p className="text-3xl font-bold">{plan.sources?.length || 0}</p>
-        <p className="text-sm text-green-200">Sources</p>
-      </div>
-      <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-5 text-white">
-        <div className="flex items-center justify-between mb-2">
-          <Filter className="w-6 h-6 text-orange-200" />
-          <Search className="w-5 h-5 text-orange-200" />
-        </div>
-        <p className="text-3xl font-bold">{plan.keywords?.length || 0}</p>
-        <p className="text-sm text-orange-200">Keywords</p>
-      </div>
+      ))}
     </div>
   );
 }
