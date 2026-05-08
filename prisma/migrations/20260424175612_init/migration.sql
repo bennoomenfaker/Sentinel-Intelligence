@@ -58,6 +58,7 @@ CREATE TABLE "RawItem" (
     "statusCode" INTEGER,
     "errorMessage" TEXT,
     "metadata" JSONB,
+    "aiAnalysis" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "RawItem_pkey" PRIMARY KEY ("id")
